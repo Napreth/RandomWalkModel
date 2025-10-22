@@ -20,160 +20,133 @@
 - 选择合适版本的Python解释器（要求Python 3.8+）
 - 安装必要的开发工具
 
-### 3. 考核题场景
+#![简洁版]
 
-模拟规则：
-- 每个粒子每步独立随机选择上下左右四个方向之一（等概率1/4）
-- 允许多个粒子占据同一格子（无碰撞约束）
-- 网格采用周期性边界条件（从边界走出会从对面边界进入）
-- 中心区域定义为：x ∈ [L//4, 3*L//4) 且 y ∈ [L//4, 3*L//4)
-- 粒子初始位置随机分布在整个L×L网格上
-- 坐标范围：x, y ∈ [0, L-1]
+# 随机游走性能优化与实现（RandomWalkModel）
 
-### 4. 考核要求
+本仓库包含一套用于模拟 L×L 网格上 N 个粒子进行随机游走（Random Walk）的参考实现与若干优化变体。项目的目标是：在给定参数下保证正确性，同时尽可能缩短模拟时间。仓库中包含纯 Python 基线、NumPy/CuPy 向量化版本，以及若干用 C / 汇编 实现的变体，便于对比不同优化策略的性能和工程实现要点。
 
-#### 基础要求
-- 用纯 Python 实现串行版本（baseline）
-- 优化目标：固定 L=512, N=100000, T=1000，总运行时间最短
-- 不限优化手段
+## 主要内容
 
-#### 可选加分项
-- **可视化**：绘制最终粒子分布热力图
-- **深度优化**：展示多种优化思路和实现
-- **性能分析**：详细的性能对比和分析
+- 多语言实现：纯 Python（基线）、NumPy/CuPy（向量化 / GPU）、C 与汇编（高性能实现）。
+- 使用 CMake 管理 C 代码的构建（见 `src/C/`、`src/C_ASM/` 等子目录）。
+- 包含复现实验所需的速度测试脚本（`tests/speedtests/`）和多线程测试示例。
+- 附带实验报告（`report/`）和 LaTeX 源文件，便于复现与提交。
 
-#### 核心能力考查
-- 理解并行计算思想和优化理念
-- 掌握Python性能优化技术
+## 仓库概览
 
-### 5. 优化方向建议
+- `src/`
+    - `C/`, `C_ASM/`, `C_ASM_SIMD/`, `C_ASM_SIMD_MULTI_THREAD/`：C / 汇编 实现与 CMake 构建
+    - `Python_baseline/`：纯 Python 串行基线（`main.py`）
+    - `Python_NumPy/`：NumPy 向量化实现（`main.py`）
+    - `Python_CuPy/`：CuPy GPU 加速实现（`main.py`）
+- `tests/`
+    - `speedtests/`：性能对比脚本
+    - `multi_thread/`, `multi_thread_cpu/`：线程/多进程示例
+- `report/`：实验报告（LaTeX 源、编译文件）
+- `requirements.txt`：Python 依赖
+- `LICENSE`：MIT 许可证
 
-- **算法优化**：向量化计算、减少循环嵌套
-- **数据结构优化**：选择合适的数据结构
-- **并行计算**：多进程、多线程
-- **编译优化**：Numba JIT、Cython
-- **使用其他语言重写**：C/C++、Rust等
-- **调用高速计算库**：NumPy、CuPy等
+## 如何运行（Python）
 
-### 6. 输入输出格式
+推荐在虚拟环境中运行并安装依赖：
 
-#### 输入
 ```bash
-python simulate.py 512 100000 1000
-#可以不严格遵守，你同样可以使用 bash 脚本来辅助运行
-```
-
-参数说明：
-- `<L>`：网格边长（512）
-- `<N>`：粒子数量（100000）
-- `<T>`：模拟步数（1000）
-
-#### 输出
-```
-Average dwell ratio: 0.2501
-Simulation time: 2.34s
-```
-
-输出说明：
-- **dwell ratio** = 所有粒子在中心区域的总步数 / (N × T)
-- **Simulation time** = 模拟运行时间（秒）
-
-### 7. 实验报告要求
-
-本考核实验报告应应用 LaTeX 或 Markdown 语法撰写：
-
-#### 报告内容要求
-- **有图有真相**：希望你可视化的展示你的结果
-- **行文流畅**：能正常的描述出你的整个探索过程
-- **技术深度**：展示对优化技术的理解和应用
-
-## 提交要求
-
-### 必须提交
-- **主程序**：`simulate.py` 或等效的可执行程序
-- **基线实现**：纯Python串行版本
-- **优化版本**：至少一个优化实现
-- **实验报告**：PDF格式，包含算法说明、优化分析、性能对比
-- **运行说明**：如何在Ubuntu 22.04环境下运行你的代码
-
-### 可选提交
-- 可视化结果图片
-- 性能测试脚本
-- requirements.txt（如使用第三方库）
-- 其他辅助文件
-
-## 参考资源
-
-### Python优化相关
-- [NumPy官方文档](https://numpy.org/doc/)
-- [Numba用户手册](https://numba.pydata.org/)
-- [Python性能优化指南](https://wiki.python.org/moin/PythonSpeed/PerformanceTips)
-
-### 并行计算相关
-- [Python多进程编程](https://docs.python.org/3/library/multiprocessing.html)
-- [Python多线程编程](https://docs.python.org/3/library/threading.html)
-- [joblib并行计算库](https://joblib.readthedocs.io/)
-
-### 可视化相关
-- [Matplotlib用户指南](https://matplotlib.org/stable/users/index.html)
-- [Seaborn统计可视化](https://seaborn.pydata.org/)
-
-### 性能分析工具
-- [cProfile性能分析](https://docs.python.org/3/library/profile.html)
-- [line_profiler逐行分析](https://github.com/pyutils/line_profiler)
-
-## 常见问题
-
-### Q: 可以使用第三方库吗？
-A: 可以，但需要在requirements.txt中声明依赖。鼓励使用各种优化库和工具。
-
-### Q: 必须在Ubuntu 22.04上运行吗？
-A: 是的，这是考核环境要求。最终提交的代码需要能在Ubuntu 22.04上正常运行。
-
-### Q: 如何验证结果的正确性？
-A: 重点关注算法逻辑的正确性，dwell ratio的数值会因随机性有所不同，但应该在合理范围内。建议验证方法：
-- 检查边界条件是否正确处理（周期性边界）
-- 验证中心区域判断逻辑是否准确
-- 测试小规模参数确保基本逻辑正确
-- 对于标准参数(L=512, N=100000, T=1000)，dwell ratio通常在0.22-0.28范围内
-
-### Q: 优化程度有上限吗？
-A: 没有上限，鼓励大胆尝试各种优化手段，包括但不限于算法优化、并行计算、编译优化等。
-
-## 快速开始
-
-### 环境设置
-```bash
-# 克隆仓库
-git clone https://github.com/THINKER-ONLY/2025-Autumn-2025-Perf-Opt-Challenge.git
-cd 2025-Autumn-2025-Perf-Opt-Challenge
-
-# 或手动安装依赖
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 项目结构
+运行基线示例：
 
-```
-random-walk-optimization-exam/
-├── README.md                 # 项目说明文档
-├── LICENSE                   # 开源许可证
-├── requirements.txt          # Python依赖
-├── .gitignore               # Git忽略规则
-├── src/                     # 源代码目录
-    └── __init__.py          # Python包文件
+```bash
+cd src/Python_baseline
+python3 main.py 512 100000 1000
 ```
 
-## 联系方式
+运行 NumPy 实现：
 
-如有问题，请联系超算俱乐部：
-- 邮箱: Zhengyang_Li@email.ncu.edu.cn
-- QQ群: 95878716159
+```bash
+cd ../Python_NumPy
+python3 main.py 512 100000 1000
+```
+
+在支持 GPU 且已安装 CuPy 的环境下运行 CuPy 版本：
+
+```bash
+cd ../Python_CuPy
+python3 main.py 512 100000 1000
+```
+
+运行后程序通常打印：
+
+```
+Average dwell ratio: 0.25xxx
+Simulation time: 2.34s
+```
+
+说明：dwell ratio = 粒子在中心区域的总停留步数 / (N × T)。
+
+## 如何构建（C / CMake）
+
+以 `src/C/` 为例：
+
+```bash
+cd src/C
+mkdir -p build && cd build
+cmake ..
+make -j
+# 运行可执行文件（名称视具体实现而定）
+./C_baseline
+```
+
+每个 C 子目录包含 `CMakeLists.txt` 和对应的源文件，请查看具体实现以获得参数说明。
+
+## 性能复现
+
+使用仓库内的性能测试脚本：
+
+```bash
+python3 tests/speedtests/test.py
+```
+
+建议：每次测试前清理 C 的 build 目录，并在干净的虚拟环境下运行 Python 测试以保证可重复性。
+
+## 参数说明
+
+- L：网格边长（示例 512）
+- N：粒子数量（示例 100000）
+- T：模拟步数（示例 1000）
+
+示例：
+
+```bash
+python3 main.py <L> <N> <T>
+```
+
+## 可视化
+
+若实现包含可视化（依赖 Matplotlib 等），程序会将热力图保存到文件或显示窗口，具体见对应 `main.py` 中的注释。
+
+## 开发建议与贡献规则
+
+- 提交代码前请确保通过基本的正确性测试（小规模参数）。
+- 新增依赖请更新 `requirements.txt`。
+- 提交 PR 时请在描述中包含性能测试复现步骤与结果摘要。
+
+## 测试建议（小规模验证）
+
+- 在 N=100、T=10 或更小的参数下先行测试正确性。
+- 对比不同实现时，记录运行时间与 dwell ratio，注意随机性引入的波动。
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+本项目采用 MIT 许可证（见 `LICENSE`）。
 
----
+## 我可以帮你做的下一步（可选）
 
-**祝各位同学在考核中取得优异成绩！展现你们的技术实力和创新能力！**
+- 把 README 调整为学术风格的实验报告模板（包含实验结果表格与图示）。
+- 为 `src/Python_NumPy/main.py` 或其它实现生成更详细的使用说明与示例输出。 
+- 添加 CI / 自动化脚本来运行 speedtests 并生成对比报告。
+
+如需我继续完善 README（例如添加运行示例的真实输出、插入图片引用或为某个实现写详细使用文档），告诉我优先级与偏好风格，我会继续修改。
